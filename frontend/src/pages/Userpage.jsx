@@ -49,9 +49,7 @@ const UserPage = () => {
 
   </div>
 </div>
-
-
-      <div className="mt-4">
+     <div className="mt-4">
         <UserTable
           users={users}
           onEdit={(user) => setEditing(user)}
