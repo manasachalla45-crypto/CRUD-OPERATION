@@ -1,34 +1,44 @@
 import { useState, useEffect } from "react";
 
-const UserForm = ({ submitLabel, onSubmit, initialData, onCancel }) => {
-  const [form, setForm] = useState({ name: "", email: "", age: "" });
+const UserForm = ({ fields, submitLabel, onSubmit, initialData, onCancel }) => {
+  const [form, setForm] = useState({});
 
+  
   useEffect(() => {
     if (initialData) setForm(initialData);
-    else setForm({ name: "", email: "", age: "" });
-  }, [initialData]);
+    else {
+      const initialState = {};
+      fields.forEach(f => (initialState[f.name] = ""));
+      setForm(initialState);
+    }
+  }, [initialData, fields]);
 
   const handleChange = (e) => {
     setForm({ ...form, [e.target.name]: e.target.value });
   };
 
+  
   const validateForm = () => {
-    const { name, email, age } = form;
-    if (!name || !email || !age) {
-      alert("All fields are required");
-      return false;
-    }
-    if (!/^[A-Za-z ]+$/.test(name)) {
-      alert("Name should contain only alphabets");
-      return false;
-    }
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-      alert("Enter a valid email");
-      return false;
-    }
-    if (!/^\d+$/.test(age)) {
-      alert("Age must be a number (only digits allowed)");
-      return false;
+    for (let field of fields) {
+      const value = form[field.name]?.trim();
+
+    
+      if (field.required && !value) {
+        alert(`${field.label} is required`);
+        return false;
+      }
+
+    
+      if (field.type === "number" && value && isNaN(Number(value))) {
+        alert(`${field.label} must be a number`);
+        return false;
+      }
+
+      
+      if (field.pattern && value && !field.pattern.test(value)) {
+        alert(field.errorMsg || `${field.label} is invalid`);
+        return false;
+      }
     }
     return true;
   };
@@ -36,55 +46,46 @@ const UserForm = ({ submitLabel, onSubmit, initialData, onCancel }) => {
   const handleSubmit = (e) => {
     e.preventDefault();
     if (!validateForm()) return;
-
     onSubmit(form);
 
+    
     if (!initialData) {
-      setForm({ name: "", email: "", age: "" });
+      const resetState = {};
+      fields.forEach(f => (resetState[f.name] = ""));
+      setForm(resetState);
     }
   };
 
   const handleCancel = () => {
     if (onCancel) onCancel();
-    else setForm({ name: "", email: "", age: "" });
+    else {
+      const resetState = {};
+      fields.forEach(f => (resetState[f.name] = ""));
+      setForm(resetState);
+    }
   };
 
   return (
     <form onSubmit={handleSubmit}>
-      <div className="mb-3">
-        <label className="form-label">Name</label>
-        <input
-          name="name"
-          className="form-control"
-          value={form.name}
-          onChange={handleChange}
-        />
-      </div>
-
-      <div className="mb-3">
-        <label className="form-label">Email</label>
-        <input
-          name="email"
-          className="form-control"
-          value={form.email}
-          onChange={handleChange}
-        />
-      </div>
-
-      <div className="mb-3">
-        <label className="form-label">Age</label>
-        <input
-          name="age"
-          className="form-control"
-          value={form.age}
-          onChange={handleChange}
-        />
-      </div>
+      {fields.map(field => (
+        <div className="mb-3" key={field.name}>
+          <label className="form-label">{field.label}</label>
+          <input
+            name={field.name}
+            type="text" 
+            className="form-control"
+            value={form[field.name]}
+            onChange={handleChange}
+          />
+        </div>
+      ))}
 
       <div className="d-flex gap-2">
         <button className="btn btn-primary w-100" type="submit">{submitLabel}</button>
         {initialData && (
-          <button type="button" className="btn btn-secondary w-100" onClick={handleCancel}>Cancel</button>
+          <button type="button" className="btn btn-secondary w-100" onClick={handleCancel}>
+            Cancel
+          </button>
         )}
       </div>
     </form>
@@ -92,3 +93,4 @@ const UserForm = ({ submitLabel, onSubmit, initialData, onCancel }) => {
 };
 
 export default UserForm;
+
