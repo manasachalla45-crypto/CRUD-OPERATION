@@ -1,0 +1,9 @@
+# Auto normalize all text files
+* text=auto
+
+# Specific files
+*.js text
+*.jsx text
+*.json text
+*.html text
+*.css text
